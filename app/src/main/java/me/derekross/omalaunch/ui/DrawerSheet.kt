@@ -89,7 +89,7 @@ fun DrawerSheet(vm: LauncherViewModel) {
             )
             BasicTextField(
                 value = vm.query,
-                onValueChange = { vm.setQuery(it) },
+                onValueChange = { vm.updateQuery(it) },
                 singleLine = true,
                 textStyle = TextStyle(
                     fontFamily = FontFamily.Monospace,
@@ -107,7 +107,7 @@ fun DrawerSheet(vm: LauncherViewModel) {
                     color = TextDim,
                     fontSize = 15.sp,
                     modifier = Modifier
-                        .clickable { vm.setQuery("") }
+                        .clickable { vm.updateQuery("") }
                         .padding(start = 10.dp),
                 )
             }

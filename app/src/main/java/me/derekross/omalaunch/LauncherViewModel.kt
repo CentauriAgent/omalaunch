@@ -89,7 +89,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
         query = ""
     }
 
-    fun setQuery(q: String) {
+    fun updateQuery(q: String) {
         query = q
     }
 
