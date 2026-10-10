@@ -44,6 +44,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
@@ -288,6 +289,20 @@ private fun InfoPage(vm: LauncherViewModel) {
 private fun DockBar(vm: LauncherViewModel) {
     val context = LocalContext.current
     val dock by vm.dock.collectAsState()
+    if (dock.isEmpty()) {
+        Text(
+            text = "dock empty · long-press an app to pin it",
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+            color = TextDim,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(vertical = 14.dp),
+        )
+        return
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -303,6 +318,7 @@ private fun DockBar(vm: LauncherViewModel) {
                 iconSize = 44.dp,
                 labelSize = 9.sp,
                 onClick = { vm.launch(context, app) },
+                onLongClick = { vm.removeFromDock(app) },
             )
         }
     }

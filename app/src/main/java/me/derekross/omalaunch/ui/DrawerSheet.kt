@@ -2,10 +2,12 @@ package me.derekross.omalaunch.ui
 
 import android.content.ComponentName
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,13 +26,17 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,7 +45,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import me.derekross.omalaunch.AppModel
+import me.derekross.omalaunch.DockPrefs
 import me.derekross.omalaunch.LauncherViewModel
 import me.derekross.omalaunch.toImageBitmap
 import me.derekross.omalaunch.ui.theme.Accent
@@ -63,6 +72,7 @@ fun DrawerSheet(vm: LauncherViewModel) {
     val apps by vm.apps.collectAsState()
     val context = LocalContext.current
     val focus = remember { FocusRequester() }
+    var sheetApp by remember { mutableStateOf<AppModel?>(null) }
     BackHandler { vm.closeDrawer() }
     Column(
         modifier = Modifier
@@ -137,20 +147,64 @@ fun DrawerSheet(vm: LauncherViewModel) {
                         vm.launch(context, app)
                         vm.closeDrawer()
                     },
+                    onLongClick = { sheetApp = app },
                 )
             }
         }
     }
+
+    sheetApp?.let { app ->
+        AlertDialog(
+            onDismissRequest = { sheetApp = null },
+            containerColor = PanelField,
+            title = {
+                Text(app.label, fontFamily = FontFamily.Monospace, color = TextMain)
+            },
+            text = {
+                Text(
+                    text = if (vm.isDocked(app)) {
+                        "Remove from dock?"
+                    } else {
+                        "Pin to dock? (${vm.dock.value.size}/${DockPrefs.MAX})"
+                    },
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 13.sp,
+                    color = TextDim,
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (vm.isDocked(app)) vm.removeFromDock(app) else vm.addToDock(app)
+                        sheetApp = null
+                    },
+                ) {
+                    Text(
+                        text = if (vm.isDocked(app)) "Remove" else "Pin",
+                        color = Accent,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { sheetApp = null }) {
+                    Text("Cancel", color = TextDim)
+                }
+            },
+        )
+    }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppIcon(
     app: AppModel,
     iconSize: Dp = 52.dp,
     labelSize: TextUnit = 11.sp,
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
+    val haptics = LocalHapticFeedback.current
     val pm = context.packageManager
     val icon by produceState<ImageBitmap?>(null, app.key) {
         value = withContext(Dispatchers.IO) {
@@ -166,7 +220,13 @@ fun AppIcon(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onClick)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onLongClick?.invoke()
+                },
+            )
             .padding(horizontal = 6.dp, vertical = 8.dp),
     ) {
         val bmp = icon

@@ -3,8 +3,6 @@ package me.derekross.omalaunch
 import android.app.Application
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.provider.MediaStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -33,6 +31,7 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
     private val launchCounts = HashMap<String, Int>()
 
     init {
+        _dock.value = DockPrefs.load(app)
         loadApps()
     }
 
@@ -52,33 +51,24 @@ class LauncherViewModel(app: Application) : AndroidViewModel(app) {
                 .distinctBy { it.key }
                 .sortedBy { it.label.lowercase() }
             _apps.value = list
-            _dock.value = resolveDock()
         }
     }
 
-    private fun resolveIntentApp(intent: Intent): AppModel? {
-        return try {
-            val ri = pm.resolveActivity(intent, 0) ?: return null
-            val ai = ri.activityInfo ?: return null
-            AppModel(
-                label = ri.loadLabel(pm).toString().ifBlank { ai.packageName },
-                packageName = ai.packageName,
-                activityName = ai.name,
-            )
-        } catch (_: Exception) {
-            null
-        }
+    fun addToDock(app: AppModel) {
+        val cur = _dock.value
+        if (cur.size >= DockPrefs.MAX || cur.any { it.key == app.key }) return
+        val next = cur + app
+        _dock.value = next
+        DockPrefs.save(getApplication(), next)
     }
 
-    private fun resolveDock(): List<AppModel> {
-        val dial = resolveIntentApp(Intent(Intent.ACTION_DIAL, Uri.parse("tel:")))
-        val sms = resolveIntentApp(Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:")))
-        val web = resolveIntentApp(Intent(Intent.ACTION_VIEW, Uri.parse("https://omarchy.org")))
-        val cam = resolveIntentApp(Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA))
-        return listOfNotNull(dial, sms, web, cam)
-            .distinctBy { it.packageName }
-            .take(4)
+    fun removeFromDock(app: AppModel) {
+        val next = _dock.value.filter { it.key != app.key }
+        _dock.value = next
+        DockPrefs.save(getApplication(), next)
     }
+
+    fun isDocked(app: AppModel): Boolean = _dock.value.any { it.key == app.key }
 
     fun openDrawer() {
         drawerOpen = true
