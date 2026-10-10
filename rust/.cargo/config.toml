@@ -1,0 +1,13 @@
+[target.aarch64-linux-android]
+linker = "/home/moltbot/Android/Sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+
+# cc-rs (ring, libsqlite3-sys, etc.) does not read Cargo's `linker` key.
+# NDK r19+ only ships API-suffixed clang wrappers, so point cc-rs at them
+# explicitly. Both `-` and `_` forms of the var names are set for safety.
+[env]
+CC_aarch64_linux_android = "/home/moltbot/Android/Sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+CXX_aarch64_linux_android = "/home/moltbot/Android/Sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++"
+AR_aarch64_linux_android = "/home/moltbot/Android/Sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
+CC_aarch64-linux-android = "/home/moltbot/Android/Sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+CXX_aarch64-linux-android = "/home/moltbot/Android/Sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++"
+AR_aarch64-linux-android = "/home/moltbot/Android/Sdk/ndk/28.2.13676358/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"

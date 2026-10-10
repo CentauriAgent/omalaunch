@@ -1,0 +1,18 @@
+[package]
+name = "peridot_ffi"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "peridot_ffi"
+
+# Bin shim so `cargo run --features uniffi/cli --bin uniffi-bindgen` works
+# from this crate (cargo can't run bin targets of dependencies directly).
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"
+
+[dependencies]
+peridot-sync = { path = "../../peridot/crates/peridot-sync" }
+uniffi = { version = "0.29", features = ["build"] }
