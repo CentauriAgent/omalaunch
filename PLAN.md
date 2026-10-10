@@ -1,6 +1,8 @@
-# Jade (working name) — an Omarchy launcher for Android
+# Omalaunch — an Omarchy launcher for Android
 
-Plan v0.1 — 2026-10-10. Status: PLANNING (nothing built yet).
+Plan v0.2 — 2026-10-10. Status: P0 IN PROGRESS.
+
+Name decided 2026-10-10: Omalaunch (Omadroid rejected: "Droid" trademark baggage). App id: me.derekross.omalaunch. Repo: CentauriAgent/omalaunch.
 
 ## 1. Vision
 
